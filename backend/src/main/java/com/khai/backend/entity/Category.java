@@ -9,6 +9,8 @@ import java.util.Set;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "categories")
 @Getter
@@ -22,15 +24,15 @@ public class Category {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;  // Tên danh mục
+    private String name;
 
     @Column(name = "description")
-    private String description;  // Mô tả danh mục
+    private String description;
 
-    @Column(name = "image")  // Thêm trường này để lưu tên ảnh
-    private String image;  // Tên ảnh của danh mục
+    @Column(name = "image")
+    private String image;
 
-    @OneToMany(mappedBy = "category")
-    private Set<Product> products; 
-
+  @OneToMany(mappedBy = "category")
+    @JsonIgnore  // Tránh vòng lặp vô hạn khi trả dữ liệu JSON
+    private Set<Product> products;
 }

@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
@@ -23,14 +24,19 @@ public class ProductController {
     private ProductService productService;
 
     // Thêm mới sản phẩm
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<Product> saveProduct(@RequestBody Product product) {
-        Product savedProduct = productService.saveProduct(product);
-        return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
+        try {
+            Product savedProduct = productService.saveProduct(product);
+            return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     // Lấy tất cả sản phẩm
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
@@ -44,23 +50,37 @@ public class ProductController {
     }
 
     // Cập nhật sản phẩm
-    @PutMapping("/")
-    public ResponseEntity<Product> updateProduct(@RequestBody Product product) {
-        Product updatedProduct = productService.updateProduct(product);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        Optional<Product> existingProduct = productService.getProductById(id);
+
+        if (existingProduct.isPresent()) {
+            product.setId(id); // Đảm bảo rằng ID sản phẩm không thay đổi
+            Product updatedProduct = productService.updateProduct(product);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     // Xóa sản phẩm
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        Optional<Product> existingProduct = productService.getProductById(id);
+
+        if (existingProduct.isPresent()) {
+            productService.deleteProduct(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
-     // API để tải ảnh sản phẩm
+
+    // API để tải ảnh sản phẩm
     @PostMapping("/upload/{productId}")
     public ResponseEntity<String> uploadProductImage(@PathVariable Long productId, @RequestParam("file") MultipartFile file) {
         String fileName = file.getOriginalFilename();
-        String uploadDir = "images/product"; // Đường dẫn thư mục lưu trữ ảnh trên server
+        String uploadDir = "src/main/resources/static/images/product"; // Thư mục lưu ảnh trong project
 
         // Tạo thư mục nếu chưa tồn tại
         File directory = new File(uploadDir);
@@ -70,14 +90,15 @@ public class ProductController {
 
         try {
             // Lưu file vào thư mục
-            Path path = Paths.get(uploadDir + fileName);
+            Path path = Paths.get(uploadDir + "/" + fileName);
             Files.write(path, file.getBytes());
 
             // Cập nhật thông tin ảnh vào bảng Product
-            Product product = productService.getProductById(productId);
-            if (product != null) {
-                product.setImage(fileName); // Lưu tên ảnh vào cột "image"
-                productService.saveProduct(product);
+            Optional<Product> product = productService.getProductById(productId);
+            if (product.isPresent()) {
+                Product updatedProduct = product.get();
+                updatedProduct.setImage(fileName); // Lưu tên ảnh vào cột "image"
+                productService.saveProduct(updatedProduct);
             }
 
             return ResponseEntity.ok("File uploaded successfully.");

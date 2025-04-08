@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Set;
 
 @Entity
@@ -29,6 +32,7 @@ public class Brand {
     @Column(name = "image")
     private String image;  // Thêm thuộc tính để lưu tên ảnh
 
-    @OneToMany(mappedBy = "brand")
-    private Set<Product> products; // Liên kết với bảng Product (một thương hiệu có thể có nhiều sản phẩm)
+ @OneToMany(mappedBy = "brand")
+    @JsonIgnore  // Tránh vòng lặp vô hạn khi trả dữ liệu JSON
+    private Set<Product> products;
 }

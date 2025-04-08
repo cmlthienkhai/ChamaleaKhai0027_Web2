@@ -17,32 +17,31 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product saveProduct(Product product) {
-        return productRepository.save(product);  // Lưu sản phẩm vào cơ sở dữ liệu
+        return productRepository.save(product);
     }
 
     @Override
     public List<Product> getAllProducts() {
-        return productRepository.findAll();  // Lấy tất cả sản phẩm từ cơ sở dữ liệu
+        return productRepository.findAll();
     }
 
     @Override
-    public Product getProductByProductCode(String productCode) {
-        return productRepository.findByProductCode(productCode);  // Tìm sản phẩm theo mã sản phẩm
+    public Optional<Product> getProductById(Long id) { // Trả về Optional<Product>
+        return productRepository.findById(id);
     }
 
     @Override
     public Product updateProduct(Product product) {
-        return productRepository.save(product);  // Cập nhật sản phẩm
+        return productRepository.save(product);
     }
 
     @Override
     public void deleteProduct(Long id) {
-        productRepository.deleteById(id);  // Xóa sản phẩm theo id
+        productRepository.deleteById(id);
     }
+
     @Override
-    public Product getProductById(Long id) {
-        // Tìm sản phẩm theo ID
-        Optional<Product> product = productRepository.findById(id);
-        return product.orElse(null); // Trả về sản phẩm nếu tìm thấy, ngược lại trả về null
+    public Product getProductByProductCode(String productCode) {
+        return productRepository.findByProductCode(productCode);
     }
 }
